@@ -1,19 +1,30 @@
 var express = require("express");
+var bodyParser = require("body-parser");
+var mongodb = require("mongodb");
+var ObjectID = mongodb.ObjectID;
 
-var PORT = process.env.PORT || 3000;
+var CONTACTS_COLLECTION = "contacts";
 
-// Initialize Express
 var app = express();
+app.use(bodyParser.json());
 
-// Configure middleware
-// Parse request body as JSON
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// Create a database variable outside of the database connection callback to reuse the connection pool in your app.
+var db;
 
-// Make public a static folder
-app.use(express.static("public"));
+// Connect to the database before starting the application server.
+mongodb.MongoClient.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/test", function (err, client) {
+  if (err) {
+    console.log(err);
+    process.exit(1);
+  }
 
-// Start the server
-app.listen(PORT, function() {
-  console.log("App listening on port " + PORT);
+  // Save database object from the callback for reuse.
+  db = client.db();
+  console.log("Database connection ready");
+
+  // Initialize the app.
+  var server = app.listen(process.env.PORT || 8080, function () {
+    var port = server.address().port;
+    console.log("App now running on port", port);
+  });
 });
